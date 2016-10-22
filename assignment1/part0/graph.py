@@ -1,12 +1,12 @@
 import numpy as np
 import tensorflow as tf
+tf.reset_default_graph()
 
 class AddTwo(object):
     def __init__(self):
         # If you are constructing more than one graph within a Python kernel
         # you can either tf.reset_default_graph() each time, or you can
         # instantiate a tf.Graph() object and construct the graph within it.
-
         # Hint: Recall from live sessions that TensorFlow
         # splits its models into two chunks of code:
         # - construct and keep around a graph of ops
@@ -21,33 +21,68 @@ class AddTwo(object):
         # Hint:  You'll want to look at tf.placeholder and sess.run.
 
         # START YOUR CODE
-        pass
+        self.init_ = tf.initialize_all_variables()
+        self.session = tf.Session(config=tf.ConfigProto(device_filters="/cpu:0"))
         # END YOUR CODE
 
     def Add(self, x, y):
         # START YOUR CODE
-        pass
+        if isinstance(x,np.ndarray):
+            X_ = tf.placeholder(tf.int64,shape=x.shape, name="X")
+        elif isinstance(x,int):
+            X_ = tf.placeholder(tf.int64, name="X")
+        if isinstance(y,np.ndarray):
+            Y_ = tf.placeholder(tf.int64,shape=y.shape, name ="Y")
+        elif isinstance(y,int):
+            Y_ = tf.placeholder(tf.int64, name ="Y")
+        else: 
+            return "input is not an integer or array"
+        summation = X_ + Y_
+        self.session.run(self.init_)
+        final_sum = self.session.run([summation], 
+                            feed_dict={X_: x, Y_: y})
+        if len(final_sum) == 1:
+            return final_sum[0]
+        else:
+            return final_sum
         # END YOUR CODE
 
 def affine_layer(hidden_dim, x, seed=0):
     # x: a [batch_size x # features] shaped tensor.
-    # hidden_dim: a scalar representing the # of nodes.
+    # hidden_dim: a scalar representing the # of nodes. Output dimension of the Affine Layer
     # seed: use this seed for xavier initialization.
-
     # START YOUR CODE
-    pass
+    seeded = seed
+    with tf.name_scope('affine_parameters'):
+        W_ = tf.get_variable(name="W", shape=[x.get_shape()[-1],hidden_dim],
+                initializer=tf.contrib.layers.xavier_initializer(seed=seeded))
+        b_ = tf.get_variable(name="b", shape=[hidden_dim],
+            initializer=tf.constant_initializer(0.0))
+        # Create variable named "biases".
+    
+    with tf.name_scope('outputs'):
+        matrix_mult = tf.matmul(x, W_) + b_
+    return matrix_mult
     # END YOUR CODE
 
 def fully_connected_layers(hidden_dims, x):
     # hidden_dims: A list of the width of the hidden layer.
     # x: the initial input with arbitrary dimension.
     # To get the tests to pass, you must use relu(.) as your element-wise nonlinearity.
-    #
+    #### Iterate over all of the hidden dimensions, using the Affine Layer
+    #### Make sure that your variable scope name is different for each layer
     # Hint: see tf.variable_scope - you'll want to use this to make each layer 
     # unique.
 
     # START YOUR CODE
-    pass
+    for i,dims in enumerate(hidden_dims):
+        with tf.name_scope('connected_layer_%s'% i):
+            with tf.variable_scope("mylayer_%s" % i) as scope:
+                if i == 0:
+                    y = tf.nn.relu(affine_layer(dims,x))
+                else:
+                    y = tf.nn.relu(affine_layer(dims,y))
+    return y
     # END YOUR CODE
 
 def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
