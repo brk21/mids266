@@ -162,5 +162,6 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
 
     # Return your predictions.
     # START YOUR CODE
-    
+    with tf.name_scope("Prediction"):
+        pred_proba_ = tf.nn.softmax(logits_, name="pred_proba")
     # END YOUR CODE
