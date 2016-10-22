@@ -111,8 +111,26 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
     # - train_op: the training operation resulting from minimizing the loss
     #             with a GradientDescentOptimizer
     # START YOUR CODE
-    pass
+    # Variables for the parameters of our model
+    with tf.name_scope('model_parameters'):
+        w_ = tf.Variable(tf.zeros([X.shape[-1], 1], dtype=tf.float32), name="w")
+        b_ = tf.Variable(0.0, dtype=tf.float32, name="b")
+        
+    # From Network to Logits
+    with tf.name_scope('network_to_logits'):
+        logits_ = fully_connected_layers(hidden_dims,x_ph)
 
+    # Cost function from Logits
+    with tf.name_scope('cost_function'):
+        per_example_loss_ = tf.nn.sigmoid_cross_entropy_with_logits(logits_, y_ph, name="per_example_loss")
+        loss_ = tf.reduce_mean(per_example_loss_,name='loss')
+
+    # Training Op  
+    with tf.name_scope("training"):
+        alpha_ = tf.placeholder(tf.float32, name="learning_rate")
+        optimizer_ = tf.train.GradientDescentOptimizer(alpha_)
+        # train_step_ = optimizer_.minimize(loss_)
+        train_step_ = optimizer_.minimize(loss_)
     # END YOUR CODE
 
 
@@ -144,5 +162,5 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
 
     # Return your predictions.
     # START YOUR CODE
-    pass
+    
     # END YOUR CODE
