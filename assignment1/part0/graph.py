@@ -23,24 +23,16 @@ class AddTwo(object):
         # START YOUR CODE
         self.init_ = tf.initialize_all_variables()
         self.session = tf.Session(config=tf.ConfigProto(device_filters="/cpu:0"))
+        self.X_ = tf.placeholder(tf.int64, name="X")
+        self.Y_ = tf.placeholder(tf.int64, name ="Y")
+        self.summation = self.X_ + self.Y_
         # END YOUR CODE
 
     def Add(self, x, y):
         # START YOUR CODE
-        if isinstance(x,np.ndarray):
-            X_ = tf.placeholder(tf.int64,shape=x.shape, name="X")
-        elif isinstance(x,int):
-            X_ = tf.placeholder(tf.int64, name="X")
-        if isinstance(y,np.ndarray):
-            Y_ = tf.placeholder(tf.int64,shape=y.shape, name ="Y")
-        elif isinstance(y,int):
-            Y_ = tf.placeholder(tf.int64, name ="Y")
-        else: 
-            return "input is not an integer or array"
-        summation = X_ + Y_
         self.session.run(self.init_)
-        final_sum = self.session.run([summation], 
-                            feed_dict={X_: x, Y_: y})
+        final_sum = self.session.run([self.summation], 
+                            feed_dict={self.X_: x, self.Y_: y})
         if len(final_sum) == 1:
             return final_sum[0]
         else:
@@ -53,15 +45,13 @@ def affine_layer(hidden_dim, x, seed=0):
     # seed: use this seed for xavier initialization.
     # START YOUR CODE
     seeded = seed
-    with tf.name_scope('affine_parameters'):
-        W_ = tf.get_variable(name="W", shape=[x.get_shape()[-1],hidden_dim],
-                initializer=tf.contrib.layers.xavier_initializer(seed=seeded), trainable=True)
-        b_ = tf.get_variable(name="b", shape=[hidden_dim],
-            initializer=tf.constant_initializer(0.0), trainable=True)
+    W_ = tf.get_variable(name="W", shape=[x.get_shape()[-1],hidden_dim],
+                         initializer=tf.contrib.layers.xavier_initializer(seed=seeded))
+    b_ = tf.get_variable(name="b", shape=[hidden_dim],
+                         initializer=tf.constant_initializer(0.0))
         # Create variable named "biases".
     
-    with tf.name_scope('outputs'):
-        matrix_mult = tf.add(tf.matmul(x, W_), b_)
+    matrix_mult = tf.add(tf.matmul(x, W_), b_)
     return matrix_mult
     # END YOUR CODE
 
@@ -75,23 +65,12 @@ def fully_connected_layers(hidden_dims, x):
     # unique.
 
     # START YOUR CODE
-    output = []
-    for i,dims in enumerate(hidden_dims):
-        with tf.name_scope('connected_layer_%s'% i):
-            with tf.variable_scope("mylayer_%s" % i) as scope:
-                if len(hidden_dims) == 0:
-                    y_out = affine_layer(dims,x)
-                    output = y_out
-                elif i == 0 and len(hidden_dims) > 1:
-                    y_out = tf.nn.relu(affine_layer(dims,x))
-                    output = y_out
-                elif i == (len(hidden_dims)-1):
-                    y_out = affine_layer(dims,y_out)
-                    output = y_out
-                else:
-                    y_out = tf.nn.relu(affine_layer(dims,y_out))
-                    output = y_out
-    return output
+    z = tf.Variable(0.0, name="output")
+    for i,dim in enumerate(hidden_dims):
+        with tf.variable_scope("mylayer_%s" % i) as scope:
+            z = tf.nn.relu(affine_layer(dim,x),name="z")
+            x = z
+    return z
     # END YOUR CODE
 
 def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
@@ -121,20 +100,16 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
     #             with a GradientDescentOptimizer
     # START YOUR CODE        
     # From Network to Logits
-    with tf.name_scope('network_to_logits'):
-        logits_ = fully_connected_layers(hidden_dims,x_ph)
-
-    # Cost function from Logits
-    with tf.name_scope('cost_function'):
-        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits_, y_ph),name='loss')
-
-    # Training Op  
-    with tf.name_scope("training"):
-        optimizer_ = tf.train.GradientDescentOptimizer(learning_rate)
-        train_op = optimizer_.minimize(loss)
+    ### TRYING TO FIGURE OUT: WHAT ARE THE DIMS THAT SHOULD BE PUT INTO THE AFFINE LAYER CALL HERE?
+    logits_ = affine_layer(hidden_dims[-1],fully_connected_layers(hidden_dims,x_ph)) 
     # Prediction
-    with tf.name_scope("prediction"):
-        y_hat = tf.nn.softmax(logits_, name="y_hat")
+    y_hat = tf.sigmoid(logits_, name="y_hat")
+    # Cost function from Logits
+    loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits_, y_hat),name='loss')
+    # Training Op  
+    optimizer_ = tf.train.GradientDescentOptimizer(learning_rate)
+    train_op = optimizer_.minimize(loss)
+
         
     # END YOUR CODE
 
