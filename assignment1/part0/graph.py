@@ -55,13 +55,13 @@ def affine_layer(hidden_dim, x, seed=0):
     seeded = seed
     with tf.name_scope('affine_parameters'):
         W_ = tf.get_variable(name="W", shape=[x.get_shape()[-1],hidden_dim],
-                initializer=tf.contrib.layers.xavier_initializer(seed=seeded))
+                initializer=tf.contrib.layers.xavier_initializer(seed=seeded), trainable=True)
         b_ = tf.get_variable(name="b", shape=[hidden_dim],
-            initializer=tf.constant_initializer(0.0))
+            initializer=tf.constant_initializer(0.0), trainable=True)
         # Create variable named "biases".
     
     with tf.name_scope('outputs'):
-        matrix_mult = tf.matmul(x, W_) + b_
+        matrix_mult = tf.add(tf.matmul(x, W_), b_)
     return matrix_mult
     # END YOUR CODE
 
@@ -79,8 +79,14 @@ def fully_connected_layers(hidden_dims, x):
     for i,dims in enumerate(hidden_dims):
         with tf.name_scope('connected_layer_%s'% i):
             with tf.variable_scope("mylayer_%s" % i) as scope:
-                if i == 0:
+                if len(hidden_dims) == 0:
+                    y_out = affine_layer(dims,x)
+                    output = y_out
+                elif i == 0 and len(hidden_dims) > 0:
                     y_out = tf.nn.relu(affine_layer(dims,x))
+                    output = y_out
+                elif i == len(hidden_dims):
+                    y_out = affine_layer(dims,y_out)
                     output = y_out
                 else:
                     y_out = tf.nn.relu(affine_layer(dims,y_out))
@@ -120,14 +126,13 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
 
     # Cost function from Logits
     with tf.name_scope('cost_function'):
-        per_example_loss_ = tf.nn.sigmoid_cross_entropy_with_logits(logits_, y_ph,name="per_example_loss")
-        loss = tf.reduce_mean(per_example_loss_,name='loss')
+        loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits_, y_ph),name='loss')
 
     # Training Op  
     with tf.name_scope("training"):
         optimizer_ = tf.train.GradientDescentOptimizer(learning_rate)
         train_op = optimizer_.minimize(loss)
-        
+    # Prediction
     with tf.name_scope("prediction"):
         y_hat = tf.nn.softmax(logits_, name="y_hat")
         
