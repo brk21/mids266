@@ -82,10 +82,10 @@ def fully_connected_layers(hidden_dims, x):
                 if len(hidden_dims) == 0:
                     y_out = affine_layer(dims,x)
                     output = y_out
-                elif i == 0 and len(hidden_dims) > 0:
+                elif i == 0 and len(hidden_dims) > 1:
                     y_out = tf.nn.relu(affine_layer(dims,x))
                     output = y_out
-                elif i == len(hidden_dims):
+                elif i == (len(hidden_dims)-1):
                     y_out = affine_layer(dims,y_out)
                     output = y_out
                 else:
