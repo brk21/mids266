@@ -65,11 +65,10 @@ def fully_connected_layers(hidden_dims, x):
     # unique.
 
     # START YOUR CODE
-    z = tf.Variable(0.0, name="output")
+    z = x
     for i,dim in enumerate(hidden_dims):
         with tf.variable_scope("mylayer_%s" % i) as scope:
-            z = tf.nn.relu(affine_layer(dim,x),name="z")
-            x = z
+            z = tf.nn.relu(affine_layer(dim,z),name="z")
     return z
     # END YOUR CODE
 
@@ -101,7 +100,7 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
     # START YOUR CODE        
     # From Network to Logits
     ### TRYING TO FIGURE OUT: WHAT ARE THE DIMS THAT SHOULD BE PUT INTO THE AFFINE LAYER CALL HERE?
-    logits_ = affine_layer(hidden_dims[-1],fully_connected_layers(hidden_dims,x_ph)) 
+    logits_ = affine_layer(1,fully_connected_layers(hidden_dims,x_ph)) 
     # Prediction
     y_hat = tf.sigmoid(logits_, name="y_hat")
     # Cost function from Logits
@@ -132,8 +131,10 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
 
             # Populate loss_value with the loss this iteration.
             # START YOUR CODE
-            loss_value = session.run(loss,
-                       feed_dict={x_ph: X_batch, y_ph: y_batch})
+            
+            global_step, loss, train_op
+            loss_value, global_step_value, train_value = sess.run([loss, global_step, train_op],
+                                                           feed_dict={x_ph: X_batch, y_ph: y_batch})
             # END YOUR CODE
         if epoch_num % 300 == 0:
             print 'Step: ', global_step_value, 'Loss:', loss_value
@@ -144,7 +145,7 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
     # Return your predictions.
     # START YOUR CODE
         
-    preds = session.run(y_hat, feed_dict={x_ph: X, y_ph: y})
+    preds = sess.run(y_hat, feed_dict={x_ph: X, y_ph: y})
     
     return preds
     

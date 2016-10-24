@@ -23,7 +23,6 @@ ddict = defaultdict(int)
 for i in xrange(len(words)):
     if i-C >= 0 and i+C < len(words):
         window = words[i-C:i+C+1]
-        #print len(window)
         temp1 = []
         temp2 = []
         for j in xrange(len(window)):
@@ -32,7 +31,6 @@ for i in xrange(len(words)):
                 W2 = window[j]
                 temp1.append(tuple([W1]+[W2]))
                 temp2.append(abs(C-j))
-                #print temp1
         for i,tup in enumerate(temp1):
             ddict[tup] += 1.00/temp2[i]
             
@@ -45,6 +43,15 @@ sorted(temp1)
 
 
             #prelim(sorted([window[0],window[i+1]])) += 1.00/C
-                
+            
+            
+unigrams = {'hello': 5, 'world': 3}
+bigrams = {('hello', 'world'): 8}
+bigram = ('hello', 'world')
+
+bigram[1]
+
+unigrams[bigram[1]]
+
 
 
