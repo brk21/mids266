@@ -20,8 +20,13 @@ def wordids_to_tensors(wordids, embedding_dim, vocab_size, seed=0):
         Each of these should contain values of type tf.float32.
     '''
     # START YOUR CODE
-    pass
-
+    word_ids = tf.placeholder(tf.float32, shape=[wordids.get_shape()[0]], name="w")
+    biases = tf.placeholder(tf.float32,shape=[vocab_size], name="b")
+    embeddings = tf.Variable(tf.random_uniform([vocab_size,embedding_dim], -1.0, 1.0), name="m")
+    
+    embed = tf.nn.embedding_lookup(embeddings, word_ids)
+    return embed
+    
     # END YOUR CODE
 
 

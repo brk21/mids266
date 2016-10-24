@@ -100,7 +100,7 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
     # START YOUR CODE        
     # From Network to Logits
     ### TRYING TO FIGURE OUT: WHAT ARE THE DIMS THAT SHOULD BE PUT INTO THE AFFINE LAYER CALL HERE?
-    logits_ = affine_layer(1,fully_connected_layers(hidden_dims,x_ph)) 
+    logits_ = affine_layer(len(y),fully_connected_layers(hidden_dims,x_ph)) 
     # Prediction
     y_hat = tf.sigmoid(logits_, name="y_hat")
     # Cost function from Logits
@@ -131,10 +131,8 @@ def train_nn(X, y, X_test, hidden_dims, batch_size, num_epochs, learning_rate):
 
             # Populate loss_value with the loss this iteration.
             # START YOUR CODE
-            
-            global_step, loss, train_op
             loss_value, global_step_value, train_value = sess.run([loss, global_step, train_op],
-                                                           feed_dict={x_ph: X_batch, y_ph: y_batch})
+                                   feed_dict={x_ph: X_batch, y_ph: y_batch, global_step: epoch_num})
             # END YOUR CODE
         if epoch_num % 300 == 0:
             print 'Step: ', global_step_value, 'Loss:', loss_value
