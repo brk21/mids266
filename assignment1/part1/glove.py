@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 def wordids_to_tensors(wordids, embedding_dim, vocab_size, seed=0):
     '''Convert a list of wordids into embeddings and biases.
@@ -20,12 +21,15 @@ def wordids_to_tensors(wordids, embedding_dim, vocab_size, seed=0):
         Each of these should contain values of type tf.float32.
     '''
     # START YOUR CODE
-    word_ids = tf.placeholder(tf.float32, shape=[wordids.get_shape()[0]], name="w")
-    biases = tf.placeholder(tf.float32,shape=[vocab_size], name="b")
-    embeddings = tf.Variable(tf.random_uniform([vocab_size,embedding_dim], -1.0, 1.0), name="m")
     
-    embed = tf.nn.embedding_lookup(embeddings, word_ids)
-    return embed
+    m = tf.get_variable(name="m", shape=[vocab_size,embedding_dim],
+                        dtype=tf.float32,initializer=tf.random_uniform_initializer(minval=-1, maxval=1,seed=seed))
+    w = tf.nn.embedding_lookup(m, wordids)
+    b = tf.get_variable(name="b", shape=[vocab_size],
+                       dtype=tf.float32,initializer=tf.constant_initializer(value=0.0, dtype=tf.float32))
+    b1 = tf.nn.embedding_lookup(b, wordids)
+    
+    return (w,b1,m)
     
     # END YOUR CODE
 
