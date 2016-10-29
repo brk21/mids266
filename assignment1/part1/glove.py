@@ -49,7 +49,8 @@ def example_weight(Xij, x_max, alpha):
       - A vector of corresponding weights.
     '''
     # START YOUR CODE
-    pass
+    y = tf.constant(1.0)
+    return tf.minimum(tf.pow(tf.div(Xij,x_max),alpha),y,name="condition")
     # END YOUR CODE
 
 
@@ -66,6 +67,8 @@ def loss(w, b, w_c, b_c, c):
     Returns:
       - loss |batch_size|: the loss of each example in the batch
     '''
-    # START YOUR CODE
-    pass
+       # START YOUR CODE
+    mat_mul = tf.matmul(w_c,tf.transpose(w))
+    loss = tf.square(tf.sub(tf.add(tf.add(mat_mul, b),b_c),tf.log(c)))
+    return loss
     # END YOUR CODE
