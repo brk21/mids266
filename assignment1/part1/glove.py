@@ -67,8 +67,9 @@ def loss(w, b, w_c, b_c, c):
     Returns:
       - loss |batch_size|: the loss of each example in the batch
     '''
-       # START YOUR CODE
-    mat_mul = tf.matmul(w_c,tf.transpose(w))
-    loss = tf.square(tf.sub(tf.add(tf.add(mat_mul, b),b_c),tf.log(c)))
+    # START YOUR CODE
+    mul = tf.mul(w,w_c)
+    dotp = tf.reduce_sum(mul,1)
+    loss = example_weight(c,100,.75)*tf.square(tf.sub(tf.add(tf.add(dotp, b),b_c),tf.log(c)))
     return loss
     # END YOUR CODE
