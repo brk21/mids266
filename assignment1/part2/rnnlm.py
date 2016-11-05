@@ -33,14 +33,16 @@ def MakeFancyRNNCell(H, keep_prob, num_layers=1):
   Returns:
     (tf.nn.rnn_cell.RNNCell) multi-layer LSTM cell with dropout
   """
-#### YOUR CODE HERE ####
-  cell = tf.nn.rnn_cell.LSTMCell(H,forget_bias=0.0,
-                                   initializer=tf.contrib.layers.xavier_initializer(),
-                                   activation = tf.nn.tanh) 
-  cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=keep_prob)
-  cell = tf.nn.rnn_cell.MultiRNNCell([cell] * num_layers,state_is_tuple=True)
+  #### YOUR CODE HERE ####
+  cell = None  # replace with something better
 
-#### END(YOUR CODE) ####
+  # Solution
+  cell = tf.nn.rnn_cell.BasicLSTMCell(H, forget_bias=0.0)
+  cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=keep_prob,
+                                       output_keep_prob=keep_prob)
+  cell = tf.nn.rnn_cell.MultiRNNCell([cell] * num_layers)
+
+  #### END(YOUR CODE) ####
   return cell
 
 class RNNLM(object):
@@ -68,9 +70,9 @@ class RNNLM(object):
       self.dropout_keep_prob_ = tf.constant(0.5, name="dropout_keep_prob")
       # For gradient clipping, if you use it.
       # Due to a bug in TensorFlow, this needs to be an ordinary python
-      # constant.
+      # constant instead of a tf.constant.
       self.max_grad_norm_ = 5.0
-
+        
   def BuildCoreGraph(self):
     """Construct the core RNNLM graph, needed for any use of the model.
 
@@ -87,23 +89,25 @@ class RNNLM(object):
 
     You shouldn't include training or sampling functions here; you'll do this
     in BuildTrainGraph and BuildSampleGraph below.
+
+    We give you some starter definitions for input_w_ and target_y_, as well 
+    as a few other tensors that might help. We've also added dummy values for 
+    initial_h_, logits_, and loss_ - you should re-define these in your code as 
+    the appropriate tensors. See the in-line comments for more detail.
     """
     # Input ids, with dynamic shape depending on input.
     # Should be shape [batch_size, max_time] and contain integer word indices.
     self.input_w_ = tf.placeholder(tf.int32, [None, None], name="w")
-    
-    ### DO WE EDIT ANY OF THE NONE-DIMENSIONS UP HERE?
-    
+
     # Initial hidden state. You'll need to overwrite this with cell.zero_state
     # once you construct your RNN cell.
     self.initial_h_ = None
     
     ### WHAT IS A HIDDEN STATE? WHY IS IT ONLY A SCALAR NUMBER? WHY NOT A PALCEHOLDER?
-    
+
     # Output logits, which can be used by loss functions or for prediction.
     # Overwrite this with an actual Tensor of shape [batch_size, max_time]
-    self.logits_ = tf.placeholder(tf.float32,[None,
-                                              None],name="logits")
+    self.logits_ = None
 
     # Should be the same shape as inputs_w_
     self.target_y_ = tf.placeholder(tf.int32, [None, None], name="y")
@@ -132,7 +136,7 @@ class RNNLM(object):
                             dtype=tf.float32,initializer=tf.random_uniform_initializer(minval=-1, maxval=1))
     # embedding_lookup gives shape (batch_size, N, M)
         x_ = tf.reshape(tf.nn.embedding_lookup(C_, self.input_w_), 
-                    [-1, self.V*self.H], name="x")
+                    [-1, self.V,self.H], name="x")
         b = tf.get_variable(name="b", shape=[self.V],
                            dtype=tf.float32,initializer=tf.constant_initializer(value=0.0, dtype=tf.float32))
         b1 = tf.nn.embedding_lookup(b, self.input_w_)
@@ -181,7 +185,7 @@ class RNNLM(object):
     self.train_step_ = tf.no_op(name="dummy")
 
     # Replace this with an actual loss function
-    self.train_loss_= None
+    self.train_loss_ = None
 
     #### YOUR CODE HERE ####
     # Define loss function(s)
@@ -208,7 +212,7 @@ class RNNLM(object):
     You should define pred_samples_ to be a Tensor of integer indices for
     sampled predictions for each batch element, at each timestep.
 
-    Hint: use tf.multinomial
+    Hint: use tf.multinomial, along with a couple of calls to tf.reshape
     """
     # Replace with a Tensor of shape [batch_size, max_time, 1]
     self.pred_samples_ = None
