@@ -217,8 +217,7 @@ class RNNLM(object):
 
     #### YOUR CODE HERE ####
     with tf.name_scope("Prediction"):
-        self.pred_samples_ = tf.multinomial(tf.reshape(self.logits_,[-1,self.V]),
-                                                       num_samples=1,name ="pred_random")
-        ###  HERE ARE THE MULTIPLE CALLS TO TF.RESHAPE? WHY CAN'T YOU JUST RESHAPE ONCE?
+        self.pred_samples_ = tf.reshape(tf.multinomial(tf.reshape(self.logits_,[-1,self.V]),
+                                                       num_samples=1,name ="pred_random"),[self.batch_size_,self.max_time_,1])
     #### END(YOUR CODE) ####
 
